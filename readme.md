@@ -4,6 +4,14 @@
 
 This is an updated **docker-compose** for having a working stack of **Prediction.IO**.  Based on **ActionML** / **Prediction.IO** branch.
 
+## How to setup
+After cloning the repo, make sure you run:
+
+```git submodule init```
+
+```git submodule update```
+
+This will download the git submodule for the **Universal Recommender Template** that will be used for testing.
 
 ## Components
 * pio
