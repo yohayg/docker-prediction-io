@@ -14,9 +14,9 @@ This is an updated **docker-compose** for having a working stack of **Prediction
 Optionally, after building, for running test to make sure the stack is working, you'll need the following after building the images:
 
 * pip (in user space inside pio image), and additionally:
-..* virtualenv 
-..* preditionio 
-..* datetime 
+  * virtualenv 
+  * preditionio 
+  * datetime 
 * Universal Recommender Template (https://github.com/actionml/template-scala-parallel-universal-recommendation.git)
 
 
