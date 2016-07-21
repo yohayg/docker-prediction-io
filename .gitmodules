@@ -1,0 +1,3 @@
+[submodule "docker_volumes/universal"]
+	path = docker_volumes/universal
+	url = https://github.com/actionml/template-scala-parallel-universal-recommendation.git
