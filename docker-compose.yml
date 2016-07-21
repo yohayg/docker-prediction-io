@@ -1,54 +1,68 @@
----
-# The container in which Metadata and Models will be stored:
-postgres:
-  image: postgres:9.4
-  ports:
-    - "5432:5432" # Bind host port 5432 to PostgreSQL port 5432
-  volumes:
-    - example-files/postgres-initdb:/docker-entrypoint-initdb.d
-  environment:
-    LC_ALL: C.UTF-8
-    POSTGRES_PASSWORD: example
+version: "2"
+services: 
 
-hbase:
-  image: vovimayhem/hbase:standalone # TODO: Take a look at sequenceiq/spark:1.2.0, which has Hadoop 2.6.0 + Spark 1.2.0
-  hostname: master
-  domainname: hbase.pio.example.com
-  volumes:
-    - example-files/hbase-server-config.xml:/hbase/conf/hbase-site.xml  # The config file
-
-pio:
-  image: vovimayhem/prediction-io:0.9.3
-  command: pio eventserver
-  ports:
-    - "7070:7070"
-  links:
-    - postgres:postgres.pio.example.com
-    - hbase:master.hbase.pio.example.com
-  volumes:
-    - example-files/prediction-io-store:/prediction-io/.pio_store
-    - example-files/hbase-client-config.xml:/prediction-io/vendors/hbase/conf/hbase-site.xml
-  environment:
+    hbase:
+        image: hyness/hbase-rest-standalone 
+        volumes:
+            - ./docker_volumes/hbase/hbase-server-config.xml:/opt/hbase/conf/hbase-site.xml # The config file
+            - ./docker_volumes/hbase/hbase-data/:/data/hbase
+            - ./docker_volumes/hbase/zookeeper-data/:/data/zookeeper
+        hostname: hbase
     
-    # Configure Postgres connection:
-    PIO_STORAGE_SOURCES_PGSQL_TYPE: jdbc
-    PIO_STORAGE_SOURCES_PGSQL_URL: jdbc:postgresql://postgres.pio.example.com/prediction_io_example
-    PIO_STORAGE_SOURCES_PGSQL_USERNAME: postgres
-    PIO_STORAGE_SOURCES_PGSQL_PASSWORD: example
+    elasticsearch:
+        image: elasticsearch:1.7.5
+        hostname: elasticsearch
+        command: [elasticsearch, -Des.cluster.name=elasticsearch, -Des.discovery.zen.ping.multicast.enabled=false, -Des.discovery.zen.ping.unicast.hosts=elasticsearch] 
+        
+    pio:
+      build: prediction.io/
+      command: bash -c 'echo "sleeping for 30 seconds" && sleep 30 && pio eventserver'
+      ports:
+        - "7070:7070"
+      volumes:
+        - ./docker_volumes/prediction-io-store:/prediction-io/.pio_store
+        - ./docker_volumes/hbase/hbase-client-config.xml:/prediction-io/vendors/hbase/conf/hbase-site.xml
+        - ./docker_volumes/universal/:/prediction-io/universal
+      environment:
+        # PredictionIO Storage Configuration
+        #
+        # This section controls programs that make use of PredictionIO's built-in
+        # storage facilities. Default values are shown below.
+        
+        # Storage Repositories    
 
-    # Configure HBase connection:
-    PIO_STORAGE_SOURCES_HBASE_TYPE: hbase
-    HBASE_CONF_DIR: /prediction-io/vendors/hbase/conf
+        # Default is to use PostgreSQL but for clustered scalable setup we'll use
+        # Elasticsearch
+        PIO_STORAGE_REPOSITORIES_METADATA_NAME: pio_meta
+        PIO_STORAGE_REPOSITORIES_METADATA_SOURCE: ELASTICSEARCH
+        
+        PIO_STORAGE_REPOSITORIES_EVENTDATA_NAME: pio_event
+        PIO_STORAGE_REPOSITORIES_EVENTDATA_SOURCE: HBASE
 
-    # Metadata Store:
-    PIO_STORAGE_REPOSITORIES_METADATA_NAME: pio_meta
-    PIO_STORAGE_REPOSITORIES_METADATA_SOURCE: PGSQL
+        PIO_STORAGE_REPOSITORIES_MODELDATA_NAME: pio_model
+        PIO_STORAGE_REPOSITORIES_MODELDATA_SOURCE: LOCALFS
 
-    # Model Store:
-    PIO_STORAGE_REPOSITORIES_MODELDATA_NAME: pio_model
-    PIO_STORAGE_REPOSITORIES_MODELDATA_SOURCE: PGSQL
+        # Local File System Example
+        PIO_STORAGE_SOURCES_LOCALFS_TYPE: localfs
+        PIO_STORAGE_SOURCES_LOCALFS_PATH: /prediction-io/.pio_store/models
+        
+        # Elasticsearch Example
+        PIO_STORAGE_SOURCES_ELASTICSEARCH_TYPE: elasticsearch
+        PIO_STORAGE_SOURCES_ELASTICSEARCH_HOME: /prediction-io/vendors/elasticsearch
+        # The next line should match the ES cluster.name in ES config
+        PIO_STORAGE_SOURCES_ELASTICSEARCH_CLUSTERNAME: elasticsearch 
+        # For single host Elasticsearch, may add hosts and ports later
+        PIO_STORAGE_SOURCES_ELASTICSEARCH_HOSTS: elasticsearch
+        PIO_STORAGE_SOURCES_ELASTICSEARCH_PORTS: 9300
 
-    # Event Store:
-    PIO_STORAGE_REPOSITORIES_EVENTDATA_NAME: pio_event
-    PIO_STORAGE_REPOSITORIES_EVENTDATA_SOURCE: HBASE
-    # PIO_STORAGE_SOURCES_HBASE_TYPE: hbase
+        # Configure HBase connection:
+        PIO_STORAGE_SOURCES_HBASE_TYPE: hbase
+        HBASE_CONF_DIR: /prediction-io/vendors/hbase/conf
+
+        # Event Store:
+        PIO_STORAGE_REPOSITORIES_EVENTDATA_NAME: pio_event
+        PIO_STORAGE_REPOSITORIES_EVENTDATA_SOURCE: HBASE
+
+        # Hbase clustered config (use one host/port if not clustered)
+        PIO_STORAGE_SOURCES_HBASE_HOSTS: hbase 
+        PIO_STORAGE_SOURCES_HBASE_PORTS: 0

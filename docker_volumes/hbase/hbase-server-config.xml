@@ -2,19 +2,19 @@
 
   <property>
     <name>hbase.master</name>
-    <value>master.hbase.pio.example.com:60000</value>
+    <value>hbase:16000</value>
     <description>The host and port that the HBase master runs at.</description>
   </property>
 
   <property>
     <name>hbase.regionserver.port</name>
-    <value>60020</value>
+    <value>16020</value>
     <description>The host and port that the HBase master runs at.</description>
   </property>
 
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>master.hbase.pio.example.com</value>
+    <value>hbase</value>
   </property>
 
   <property>
