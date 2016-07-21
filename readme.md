@@ -68,4 +68,7 @@ You can also specify a specific component stack to see, for example:
 
 
 ## How to test
-**TODO**
+
+See <a>https://d.evops.pw/dockerized-prediction-io/</a>  for info on how to test and detailed explanation.
+
+
