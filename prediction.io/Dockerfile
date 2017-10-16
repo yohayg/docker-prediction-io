@@ -48,13 +48,14 @@ RUN rm -rf /prediction-io/conf/pio-env.sh*
 
 #SPARK INSTALLATION
 ENV HADOOP_VERSION=2.6 \
-    SPARK_VERSION=1.6.2 \
+    SPARK_VERSION=1.6.3 \
     SPARK_HOME=/prediction-io/vendors/spark \
-    SPARK_DOWNLOAD_SHA512=6af56f20ec8374ee96bddf01e434a02dd4b06308abaed517288d50b2129ce5ab28685ec210ac7b479f5bf4bc50458cdf1a01aedd472df5c2b7d673ca94f8d1d5 \
+    #SPARK_DOWNLOAD_SHA512=6af56f20ec8374ee96bddf01e434a02dd4b06308abaed517288d50b2129ce5ab28685ec210ac7b479f5bf4bc50458cdf1a01aedd472df5c2b7d673ca94f8d1d5 \
+    SPARK_DOWNLOAD_SHA512=dd97beedfd4748c44f6079de91b4a905c4710108cce5dee685ba30b1038ac7792a43bb8cec42eebd289b16e378a61df27b9051093a3eae81ba89c90299e5848a \
     PATH=/prediction-io/vendors/spark/bin:$PATH
 
 RUN mkdir -p /prediction-io/vendors/spark 
-RUN curl -fSL -o /tmp/spark.tar.gz "http://www-us.apache.org/dist/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz" 
+RUN curl -fSL -o /tmp/spark.tar.gz "http://www.apache.org/dist/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz" 
 RUN echo "$SPARK_DOWNLOAD_SHA512 /tmp/spark.tar.gz" | sha512sum -c - 
 RUN tar zxvfC /tmp/spark.tar.gz /prediction-io/vendors/spark --strip-components=1 
 RUN rm -rf /tmp/spark.tar.gz
